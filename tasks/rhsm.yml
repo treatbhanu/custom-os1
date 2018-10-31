@@ -1,0 +1,13 @@
+---
+- name: Register to RHSM
+  redhat_subscription:
+          state: present
+          username: "{{ rhel7cis_RHSM_username }}"
+          password: "{{ rhel7cis_RHSM_password }}"
+          autosubscribe: true
+          force_register: true
+
+- name: Update all packages
+  yum:
+   name: '*'
+   state: latest

@@ -1,0 +1,165 @@
+- name: "SCORED | 1.1.17 | PATCH | Ensure sticky bit is set on all world-writable directories"
+  shell: df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type d -perm -0002 2>/dev/null | xargs chmod a+t
+  changed_when: no
+  failed_when: no
+  #when: sticky_bit_on_worldwritable_dirs_audit.rc == '0'
+
+- name: "SCORED | 1.6.1 | PATCH | Ensure core dumps are restricted"
+  lineinfile:
+      state: present
+      dest: /etc/security/limits.conf
+      regexp: '^#?\\*.*core'
+      line: '*                hard    core            0'
+      insertbefore: '^# End of file'
+
+- name: "SCORED | 1.6.1 | PATCH | Ensure core dumps are restricted"
+  sysctl:
+      name: fs.suid_dumpable
+      value: 0
+      state: present
+      reload: yes
+      sysctl_set: yes
+      ignoreerrors: yes
+
+- name: "SCORED | 3.2 | PATCH | Ensure X Window System is not installed"
+  yum:
+      name: "{{item}}"
+      state: absent
+  with_items:
+      - "@X Window System"
+      - "xorg-x11*"
+
+- name: "SCORED | 4.5.2 | PATCH | Ensure /etc/hosts.allow is configured"
+  template:
+      src: hosts.allow.j2
+      dest: /etc/hosts.allow
+      owner: root
+      group: root
+      mode: 0644
+
+- name: "SCORED | 4.5.2 | PATCH | Ensure /etc/hosts.deny is configured"
+  template:
+      src: hosts.deny.j2
+      dest: /etc/hosts.deny
+      owner: root
+      group: root
+      mode: 0644
+
+- name: "NOTSCORED | 4.6.1 | PATCH | Ensure DCCP is disabled"
+  lineinfile:
+      dest: /etc/modprobe.d/CIS.conf
+      regexp: "^(#)?install dccp(\\s|$)"
+      line: "install dccp /bin/true"
+      create: yes
+
+- name: "NOTSCORED | 4.6.2 | PATCH | Ensure SCTP is disabled"
+  lineinfile:
+      dest: /etc/modprobe.d/CIS.conf
+      regexp: "^(#)?install sctp(\\s|$)"
+      line: "install sctp /bin/true"
+      create: yes
+
+- name: "NOTSCORED | 4.6.3 | PATCH | Ensure RDS is disabled"
+  lineinfile:
+      dest: /etc/modprobe.d/CIS.conf
+      regexp: "^(#)?install rds(\\s|$)"
+      line: "install rds /bin/true"
+      create: yes
+
+- name: "NOTSCORED | 4.6.4 | PATCH | Ensure TIPC is disabled"
+  lineinfile:
+      dest: /etc/modprobe.d/CIS.conf
+      regexp: "^(#)?install tipc(\\s|$)"
+      line: "install tipc /bin/true"
+      create: yes
+
+- name: "SCORED | 6.2.11 | PATCH | Ensure root login is disabled"
+  lineinfile:
+      state: present
+      dest: /etc/ssh/sshd_config
+      regexp: '^PermitRootLogin'
+      line: 'PermitRootLogin no'
+
+- name: "SCORED | 6.2.11 | PATCH | Ensure only approved ciphers are used"
+  lineinfile:
+      state: present
+      dest: /etc/ssh/sshd_config
+      regexp: '^Ciphers'
+      line: 'Ciphers aes256-ctr,aes192-ctr,aes128-ctr'
+
+- name: "SCORED | 6.2.13 | PATCH | Ensure SSH access is limited - allowusers"
+  lineinfile:
+      state: present
+      dest: /etc/ssh/sshd_config
+      regexp: "^AllowUsers"
+      line: AllowUsers {{ rhel7cis_sshd['allowusers'] }}
+  notify:
+      - restart sshd
+  when: "rhel7cis_sshd['allowusers']|default('') != ''"
+
+- name: "SCORED | 6.2.13 | PATCH | Ensure SSH access is limited - allowgroups"
+  lineinfile:
+      state: present
+      dest: /etc/ssh/sshd_config
+      regexp: "^AllowGroups"
+      line: AllowGroups {{ rhel7cis_sshd['allowgroups'] }}
+  notify:
+      - restart sshd
+  when: "rhel7cis_sshd['allowgroups']|default('') != ''"
+
+- name: "SCORED | 6.2.13 | PATCH | Ensure SSH access is limited - denyusers"
+  lineinfile:
+      state: present
+      dest: /etc/ssh/sshd_config
+      regexp: "^DenyUsers"
+      line: DenyUsers {{ rhel7cis_sshd['denyusers'] }}
+  notify:
+      - restart sshd
+  when: "rhel7cis_sshd['denyusers']|default('') != ''"
+
+- name: "SCORED | 6.2.13 | PATCH | Ensure SSH access is limited - denygroups"
+  lineinfile:
+      state: present
+      dest: /etc/ssh/sshd_config
+      regexp: "^DenyGroups"
+      line: DenyGroups {{ rhel7cis_sshd['denygroups'] }}
+  notify:
+      - restart sshd
+  when: "rhel7cis_sshd['denygroups']|default('') != ''"
+
+- name: "SCORED | 6.2.14 | PATCH | Ensure SSH warning banner is configured"
+  lineinfile:
+      state: present
+      dest: /etc/ssh/sshd_config
+      regexp: '^Banner'
+      line: 'Banner /etc/issue.net'
+
+- name: "SCORED | 6.3.2| PATCH | Ensure password creation requirements are configured"
+  lineinfile:
+      state: present
+      dest: /etc/security/pwquality.conf
+      regexp: '^{{ item.key }}'
+      line: '{{ item.key }} = {{ item.value }}'
+  with_items:
+      - { key: 'minlen',  value: '14' }
+      - { key: 'dcredit', value: '-1' }
+      - { key: 'ucredit', value: '-1' }
+      - { key: 'ocredit', value: '-1' }
+      - { key: 'lcredit', value: '-1' }
+
+- name: "SCORED | 7.4 | PATCH | Ensure default user umask is 027 or more restrictive - /etc/bashrc"
+  replace:
+      path: /etc/bashrc
+      regexp: '(^\s+umask) 002'
+      replace: '\1 027'
+
+- name: "SCORED | 7.4 | PATCH | Ensure default user umask is 027 or more restrictive - /etc/profile"
+  replace:
+      path: /etc/profile
+      regexp: '(^\s+umask) 002'
+      replace: '\1 027'
+
+- name: "SCORED | 8.2 | PATCH | Ensure message of the day is configured properly"
+  template:
+      src: etc/motd.j2
+      dest: /etc/motd

@@ -1,0 +1,13 @@
+---
+   - name: "SCORED | 3.8 | PATCH | Ensure NFS and RPC are not enabled"
+     service:
+        name: nfs
+        state: stopped
+        enabled: no
+
+   - name: "SCORED | 3.8 | PATCH | Ensure RPC is not enabled"
+     service:
+        name: rpcbind
+        state: stopped
+        enabled: no
+

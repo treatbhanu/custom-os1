@@ -1,0 +1,54 @@
+---
+- stat: path=/var/log/daemon.log
+  register: p
+
+- name: create '/var/log/daemon.log' file
+  file: path=/var/log/daemon.log 
+        owner=root
+        group=sys
+        mode=0555
+        state={{ "file" if  p.stat.exists else "touch"}}
+
+- stat: path=/var/log/kern.log
+  register: p
+
+- name: create '/var/log/kern.log' file
+  file: path=/var/log/kern.log
+        owner=root
+        group=sys
+        mode=0555
+        state={{ "file" if  p.stat.exists else "touch"}}
+
+- stat: path=/var/log/syslog
+  register: p
+
+- name: create '/var/log/syslog' file
+  file: path=/var/log/syslog
+        owner=root
+        group=sys
+        mode=0555
+        state={{ "file" if  p.stat.exists else "touch"}}
+
+- name: Configure /etc/rsyslog.conf with auth,user
+  lineinfile:
+        path: /etc/rsyslog.conf
+        line: '#Create for CIS Remediation,Updated by Ansible Playbook'
+        line: 'auth,user.* /var/log/messages'
+
+- name: Configure /etc/rsyslog.conf with kern
+  lineinfile:
+        path: /etc/rsyslog.conf
+        line: 'kern.* /var/log/kern.log'
+
+- name: Configure /etc/rsyslog.conf with demon
+  lineinfile:
+        path: /etc/rsyslog.conf
+        line: 'daemon.* /var/log/daemon.log'
+
+- name: Configure rsyslog to Send Logs to a Remote Log Host
+  lineinfile:
+        path: /etc/rsyslog.conf
+        line: '*.* @@loghost.example.com'
+
+- name: Restart rsyslogd
+  command: pkill -HUP rsyslogd  

@@ -1,0 +1,42 @@
+---
+   - name: Configure Lock Root Account After Failed Login Attempts system-auth 1st iteration
+     lineinfile:
+           path: /etc/pam.d/system-auth
+           insertafter: 'auth        required      pam_env.so'
+           line: 'auth        required      pam_faillock.so preauth silent audit deny=3 unlock_time=300'
+           
+   - name: Configure Lock Root Account After Failed Login Attempts system-auth 2nd iteration
+     lineinfile:
+           path: /etc/pam.d/system-auth
+           insertafter: 'auth        sufficient    pam_unix.so nullok try_first_pass'
+           line: 'auth        [default=die]  pam_faillock.so  authfail  audit  deny=3  unlock_time=300'
+           
+   - name: Configure Lock Root Account After Failed Login Attempts system-auth 3rd iteration
+     lineinfile:
+           path: /etc/pam.d/system-auth
+           insertafter: 'account     required      pam_permit.so'
+           line: 'account     required      pam_faillock.so'    
+
+   - name: Configure Lock Root Account After Failed Login Attempts password-auth 1st iteration
+     lineinfile:
+           path: /etc/pam.d/password-auth
+           insertafter: 'auth        required      pam_env.so'
+           line: 'auth        required      pam_faillock.so preauth silent audit deny=3 unlock_time=300'
+           
+   - name: Configure Lock Root Account After Failed Login Attempts password-auth 2nd iteration
+     lineinfile:
+           path: /etc/pam.d/password-auth
+           insertafter: 'auth        sufficient    pam_unix.so nullok try_first_pass'
+           line: 'auth        [default=die]  pam_faillock.so  authfail  audit  deny=3  unlock_time=300'
+           
+   - name: Configure Lock Root Account After Failed Login Attempts password-auth 3rd iteration
+     lineinfile:
+           path: /etc/pam.d/password-auth
+           insertafter: 'account     required      pam_permit.so'
+           line: 'account     required      pam_faillock.so'    
+
+   - name: Configure Limit Password Reuse
+     lineinfile:
+           path: /etc/pam.d/password-auth
+           line: 'password sufficient pam_unix.so use_authtok md5 shadow remember=13'            
+           

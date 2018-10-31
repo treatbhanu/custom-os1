@@ -1,0 +1,37 @@
+# Time Synchronization
+rhel7cis_time_synchronization: chrony
+rhel7cis_time_synchronization: ntp
+rhel7cis_RHSM_username: XXXXXXXXXX
+rhel7cis_RHSM_password: XXXXXXXXX
+#rhel7cis_time_synchronization_servers:
+#    - 0.pool.ntp.org
+#    - 1.pool.ntp.org
+#    - 2.pool.ntp.org
+#    - 3.pool.ntp.org
+#    - bhanu.xerox.com
+
+# 3.4.2 | PATCH | Ensure /etc/hosts.allow is configured
+rhel7cis_host_allow:
+    - "10.3.0.0/255.255.0.0"
+    - "10.1.0.0/255.255.0.0"
+    - "10.24.77.0/255.255.255.0"
+    - "10.24.76.0/255.255.255.0"
+
+# Warning Banner Content (issue, issue.net, motd)
+rhel7cis_warning_banner: |
+      ----------------------------------------------------------------------------
+                          PRIVACY AND SECURITY NOTICE
+      ----------------------------------------------------------------------------
+
+      This is a Xerox computer system that is "FOR OFFICIAL XEROX USE ONLY" by specifically authorized personnel and includes Xerox confidential,proprietary,and privileged information. This system may be subject to monitoring. No expectation of privacy is to be assumed. Unauthorized attempts to upload, download, or change information on this system are strictly prohibited and may be punishable under applicable law.
+      Individuals found performing unauthorized activities are subject to disciplinary action including termination and criminal and civil prosecution. Anyone using this system must agree to abide by Xerox policies and expressly consent to monitoring of their actions by their continuance. Otherwise, please log-off this system immediately.
+# End Banner
+
+rhel7cis_sshd:
+    clientalivecountmax: 3
+    clientaliveinterval: 300
+    # - make sure you understand the precedence when working with these values!!
+    #allowusers: tewaribhanu
+    allowgroups: systems dba wheel
+    #denyusers: test
+    #denygroups: cis

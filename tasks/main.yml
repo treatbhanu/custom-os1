@@ -1,0 +1,21 @@
+---
+# tasks file for Federal_CIS
+- include: rhsm.yml
+  become: yes
+
+- include: ntp.yml
+  become: yes
+
+- include: rpc.yml
+  become: yes
+
+- include: rsyslog.yml
+  become: yes
+
+- include: vulnerable.yml
+  become: yes
+  #become_user: bhanu
+  #become_method: sudo
+
+- include: pam.yml
+  become: yes
